@@ -2,8 +2,28 @@ const express = require('express');
 const path = require('path');
 const Database = require('better-sqlite3');
 const cors = require('cors');
+const mysql = require('mysql2/promise');
 
 const app = express();
+
+// Connexion MySQL partagee (lecture seule)
+let mysqlConn = null;
+async function initMySQL() {
+    try {
+        mysqlConn = await mysql.createConnection({
+            host: 'mysql.mrlojnat.fr',
+            port: 3306,
+            user: 'g3d',
+            password: 'nNzAsD5%U47qg@KR',
+            connectTimeout: 10000
+        });
+        await mysqlConn.query('USE app');
+        console.log('[MySQL] Connecte a la base partagee');
+    } catch (e) {
+        console.error('[MySQL] Erreur connexion:', e.message);
+        mysqlConn = null;
+    }
+}
 const PORT = process.env.PORT || 3040;
 
 // DB
@@ -173,6 +193,45 @@ app.get('/api/mesures/stats', (req, res) => {
     res.json({ ...stats, nb_dangers: dangers.count, nb_alertes: alertesCount.count });
 });
 
+// ─── API Base partagee (MySQL) ───────────────────────────
+
+// GET /api/partage/temperatures
+app.get('/api/partage/temperatures', async (req, res) => {
+    if (!mysqlConn) return res.json([]);
+    try {
+        const [rows] = await mysqlConn.query('SELECT * FROM temperature_humidite ORDER BY timestamp DESC LIMIT 50');
+        res.json(rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// GET /api/partage/luminosite
+app.get('/api/partage/luminosite', async (req, res) => {
+    if (!mysqlConn) return res.json([]);
+    try {
+        const [rows] = await mysqlConn.query('SELECT * FROM luminosite ORDER BY timestamp DESC LIMIT 50');
+        res.json(rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// GET /api/partage/tout - Toutes les donnees partagees
+app.get('/api/partage/tout', async (req, res) => {
+    if (!mysqlConn) return res.json({ temperature: [], luminosite: [] });
+    try {
+        const [temps] = await mysqlConn.query('SELECT * FROM temperature_humidite ORDER BY timestamp DESC LIMIT 1');
+        const [lums] = await mysqlConn.query('SELECT * FROM luminosite ORDER BY timestamp DESC LIMIT 1');
+        res.json({
+            temperature: temps[0] || null,
+            luminosite: lums[0] || null
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // ─── API Commandes ─────────────────────────────────────────
 
 // GET /api/commandes - Historique
@@ -234,9 +293,13 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`SmartVend API — http://localhost:${PORT}`);
-    console.log(`Capteurs sur /api/capteurs`);
-    console.log(`Produits sur /api/produits`);
-    console.log(`Mesures SGP30 sur /api/mesures`);
+// Initialisation MySQL + demarrage
+initMySQL().then(() => {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`SmartVend API — http://localhost:${PORT}`);
+        console.log(`Capteurs sur /api/capteurs`);
+        console.log(`Produits sur /api/produits`);
+        console.log(`Mesures SGP30 sur /api/mesures`);
+        console.log(`Base partagee sur /api/partage/tout`);
+    });
 });

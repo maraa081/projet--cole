@@ -217,11 +217,56 @@ async function loadOtherSensors() {
     }
 }
 
+async function loadPartageData() {
+    try {
+        const res = await fetch('/ecole/api/partage/tout');
+        const data = await res.json();
+        
+        let html = '';
+        
+        if (data.temperature) {
+            html += `
+                <div class="stat-card">
+                    <h4>Groupe B — Temperature</h4>
+                    <div class="value warning">${data.temperature.temperature} <span class="unit">°C</span></div>
+                    <div class="value" style="font-size:1rem;color:var(--text-secondary)">
+                        Humidite: ${data.temperature.humidite}%
+                    </div>
+                    <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.2rem">
+                        ${new Date(data.temperature.timestamp).toLocaleString('fr-FR')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (data.luminosite) {
+            html += `
+                <div class="stat-card">
+                    <h4>Groupe D — Luminosite</h4>
+                    <div class="value accent">${data.luminosite.luminosite} <span class="unit">lux</span></div>
+                    <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.2rem">
+                        ${new Date(data.luminosite.timestamp).toLocaleString('fr-FR')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (!html) {
+            html = '<p style="color:var(--text-secondary)">En attente des donnees des autres groupes...</p>';
+        }
+        
+        document.getElementById('partage-data').innerHTML = html;
+    } catch (e) {
+        document.getElementById('partage-data').innerHTML = '<p style="color:var(--text-secondary)">Base partagee indisponible</p>';
+    }
+}
+
 // ─── Init ──────────────────────────────────────────────────
 loadSGP30Live();
 loadSGP30Chart();
 loadAlertes();
 loadOtherSensors();
+loadPartageData();
 
 // Live values en temps reel (toutes les 100ms)
 setInterval(loadSGP30Live, 100);
@@ -231,4 +276,5 @@ setInterval(() => {
     loadSGP30Chart();
     loadAlertes();
     loadOtherSensors();
+    loadPartageData();
 }, 5000);
