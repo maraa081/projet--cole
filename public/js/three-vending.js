@@ -65,8 +65,33 @@ function addBox(w, h, d, color, x, y, z, metalness = 0.3, roughness = 0.5) {
     return m;
 }
 
-// Body
-addBox(3.4, 4.8, 2.0, 0x1a1a3a, 0, 2.4, 0, 0.5, 0.3);
+// Body walls (open front to see products through glass)
+const wallMat = new THREE.MeshStandardMaterial({ color: 0x1a1a3a, metalness: 0.5, roughness: 0.3 });
+
+// Back wall (visible through front opening)
+const back = new THREE.Mesh(new THREE.BoxGeometry(3.2, 4.6, 0.06), wallMat);
+back.position.set(0, 2.4, -0.95);
+machine.add(back);
+
+// Left wall
+const left = new THREE.Mesh(new THREE.BoxGeometry(0.06, 4.6, 1.8), wallMat);
+left.position.set(-1.6, 2.4, 0);
+machine.add(left);
+
+// Right wall
+const right = new THREE.Mesh(new THREE.BoxGeometry(0.06, 4.6, 1.8), wallMat);
+right.position.set(1.6, 2.4, 0);
+machine.add(right);
+
+// Top
+const top = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.06, 1.8), wallMat);
+top.position.set(0, 4.7, 0);
+machine.add(top);
+
+// Bottom
+const bottom = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.06, 1.8), wallMat);
+bottom.position.set(0, 0.05, 0);
+machine.add(bottom);
 // Frame
 const frame = addBox(3.1, 4.0, 0.06, 0x6c5ce7, 0, 2.4, 1.0, 0.6, 0.2);
 frame.material.emissive = new THREE.Color(0x6c5ce7);
