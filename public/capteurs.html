@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capteurs — SmartVend</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="logo">Smart<span>Vend</span></a>
+        <ul class="nav-links">
+            <li><a href="/">Accueil</a></li>
+            <li><a href="/distributeur">Distributeur 3D</a></li>
+            <li><a href="/capteurs" class="active">Capteurs</a></li>
+            <li><a href="/admin">Admin</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>📊 Données Capteurs</h1>
+        <p>Visualisation en temps réel — Tous les groupes confondus</p>
+    </div>
+
+    <div style="max-width:1200px;margin:0 auto;padding:2rem">
+        <!-- Highlights -->
+        <div class="sensors-grid" id="sensors-grid"></div>
+
+        <!-- Graphique Gaz -->
+        <div class="chart-container">
+            <h3>📈 Notre capteur — Gaz (MQ-135) — Évolution</h3>
+            <canvas id="gaz-chart"></canvas>
+        </div>
+
+        <!-- Tous les capteurs -->
+        <div class="chart-container">
+            <h3>🌐 Tous les capteurs — Dernières valeurs</h3>
+            <div id="all-sensors-table"></div>
+        </div>
+    </div>
+
+    <script src="/js/capteurs.js"></script>
+</body>
+</html>

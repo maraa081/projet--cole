@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributeur 3D — SmartVend</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="logo">Smart<span>Vend</span></a>
+        <ul class="nav-links">
+            <li><a href="/">Accueil</a></li>
+            <li><a href="/distributeur" class="active">Distributeur 3D</a></li>
+            <li><a href="/capteurs">Capteurs</a></li>
+            <li><a href="/admin">Admin</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>Distributeur 3D</h1>
+        <p>Visualisation interactive de notre distributeur automatique</p>
+    </div>
+
+    <div class="viewport-3d" id="three-container"></div>
+
+    <div class="products-section">
+        <h2 style="margin-bottom:2rem;font-size:1.5rem">Produits disponibles</h2>
+        <div class="products-grid" id="products-grid"></div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="/js/three-vending.js"></script>
+</body>
+</html>

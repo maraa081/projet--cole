@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — SmartVend</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="logo">Smart<span>Vend</span></a>
+        <ul class="nav-links">
+            <li><a href="/">Accueil</a></li>
+            <li><a href="/distributeur">Distributeur 3D</a></li>
+            <li><a href="/capteurs">Capteurs</a></li>
+            <li><a href="/admin" class="active">Admin</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>Panneau d'administration</h1>
+        <p>Gestion des produits, stocks et commandes</p>
+    </div>
+
+    <div class="admin-main" style="max-width:1200px;margin:0 auto;padding:2rem">
+        <!-- Stats -->
+        <div class="stats-grid" id="stats-grid"></div>
+
+        <!-- Actions -->
+        <button class="add-produit-btn" onclick="openModal()">➕ Ajouter un produit</button>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Type</th>
+                        <th>Prix</th>
+                        <th>Stock</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="produits-table"></tbody>
+            </table>
+        </div>
+
+        <!-- Commandes récentes -->
+        <h2 style="margin:2rem 0 1rem;font-size:1.3rem">📋 Dernières commandes</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Produit</th>
+                        <th>Qté</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="commandes-table"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h2 id="modal-title">Ajouter un produit</h2>
+            <form id="product-form" onsubmit="saveProduct(event)">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label>Nom du produit</label>
+                    <input type="text" id="nom" required placeholder="Coca-Cola">
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="type">
+                        <option value="canette">Canette</option>
+                        <option value="snack">Snack</option>
+                        <option value="bouteille">Bouteille</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Prix (€)</label>
+                    <input type="number" id="prix" step="0.10" min="0" required placeholder="1.50">
+                </div>
+                <div class="form-group">
+                    <label>Quantité</label>
+                    <input type="number" id="quantite" min="0" required placeholder="10">
+                </div>
+                <div class="form-group">
+                    <label>Couleur (code hex)</label>
+                    <input type="color" id="couleur" value="#6c5ce7">
+                </div>
+                <div class="form-btns">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

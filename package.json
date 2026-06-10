@@ -1,0 +1,15 @@
+{
+  "name": "projet-distributeur",
+  "version": "1.0.0",
+  "description": "Distributeur automatique connecté - Projet IoT/Dev",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "better-sqlite3": "^11.0.0",
+    "cors": "^2.8.5"
+  }
+}
