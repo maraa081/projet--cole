@@ -2,7 +2,7 @@
 
 async function loadAllSensors() {
     try {
-        const res = await fetch('/api/capteurs/tous');
+        const res = await fetch('/ecole/api/capteurs/tous');
         const capteurs = await res.json();
         const grid = document.getElementById('sensors-grid');
 
@@ -41,7 +41,7 @@ async function loadAllSensors() {
 
 async function loadGazChart() {
     try {
-        const res = await fetch('/api/capteurs/gaz');
+        const res = await fetch('/ecole/api/capteurs/gaz');
         const data = await res.json();
 
         if (!data.length) {
@@ -97,7 +97,7 @@ async function loadGazChart() {
 
 async function loadAllSensorTable() {
     try {
-        const res = await fetch('/api/capteurs');
+        const res = await fetch('/ecole/api/capteurs');
         const data = await res.json();
         const container = document.getElementById('all-sensors-table');
 

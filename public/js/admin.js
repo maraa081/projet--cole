@@ -2,7 +2,7 @@
 
 async function loadStats() {
     try {
-        const res = await fetch('/api/stats');
+        const res = await fetch('/ecole/api/stats');
         const stats = await res.json();
         document.getElementById('stats-grid').innerHTML = `
             <div class="stat-card">
@@ -29,7 +29,7 @@ async function loadStats() {
 
 async function loadProduits() {
     try {
-        const res = await fetch('/api/produits');
+        const res = await fetch('/ecole/api/produits');
         const produits = await res.json();
         document.getElementById('produits-table').innerHTML = produits.map(p => `
             <tr>
@@ -60,7 +60,7 @@ async function loadProduits() {
 
 async function loadCommandes() {
     try {
-        const res = await fetch('/api/commandes');
+        const res = await fetch('/ecole/api/commandes');
         const commandes = await res.json();
         document.getElementById('commandes-table').innerHTML = commandes.length ? commandes.map(c => `
             <tr>
@@ -110,7 +110,7 @@ async function saveProduct(event) {
     };
 
     try {
-        const url = id ? `/api/produits/${id}` : '/api/produits';
+        const url = id ? `/ecole/api/produits/${id}` : '/ecole/api/produits';
         const method = id ? 'PUT' : 'POST';
         const res = await fetch(url, {
             method,
@@ -130,7 +130,7 @@ async function saveProduct(event) {
 
 async function editProduit(id) {
     try {
-        const res = await fetch(`/api/produits/${id}`);
+        const res = await fetch(`/ecole/api/produits/${id}`);
         const produit = await res.json();
         openModal(produit);
     } catch (e) {
@@ -141,7 +141,7 @@ async function editProduit(id) {
 async function deleteProduit(id) {
     if (!confirm('Supprimer ce produit ?')) return;
     try {
-        await fetch(`/api/produits/${id}`, { method: 'DELETE' });
+        await fetch(`/ecole/api/produits/${id}`, { method: 'DELETE' });
         showToast('Produit supprimé ✅', 'success');
         loadStats();
         loadProduits();
