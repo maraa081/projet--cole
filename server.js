@@ -111,6 +111,68 @@ app.post('/api/capteurs', (req, res) => {
     res.json({ id: result.lastInsertRowid, message: 'Donnée enregistrée ✅' });
 });
 
+// ─── API SGP30 (Capteur de gaz) ───────────────────────────
+
+// POST /api/mesures - Recevoir une mesure du SGP30
+app.post('/api/mesures', (req, res) => {
+    const { tvoc, eco2, status, sample } = req.body;
+    if (tvoc === undefined || eco2 === undefined) {
+        return res.status(400).json({ error: 'Donnees invalides' });
+    }
+    const ts = new Date().toISOString();
+    const st = db.prepare('INSERT INTO mesures (timestamp, tvoc, eco2, status, sample) VALUES (?,?,?,?,?)');
+    const result = st.run(ts, tvoc, eco2, status || 'OK', sample || 0);
+
+    // Alerte auto si besoin
+    if (status === 'ALERTE' || status === 'DANGER') {
+        const msgs = {
+            ALERTE: `Niveau anormal - TVOC ${tvoc} ppb / eCO2 ${eco2} ppm`,
+            DANGER: `FUITE CRITIQUE - TVOC ${tvoc} ppb / eCO2 ${eco2} ppm`
+        };
+        db.prepare('INSERT INTO alertes (timestamp, type, tvoc, eco2, message) VALUES (?,?,?,?,?)')
+            .run(ts, status, tvoc, eco2, msgs[status]);
+    }
+    res.json({ id: result.lastInsertRowid, status: 'ok' });
+});
+
+// GET /api/mesures - Lire les mesures
+app.get('/api/mesures', (req, res) => {
+    const limit = parseInt(req.query.limit) || 60;
+    const rows = db.prepare('SELECT id, timestamp, tvoc, eco2, status FROM mesures ORDER BY id DESC LIMIT ?').all(limit);
+    const mesures = rows.reverse();
+    res.json(mesures);
+});
+
+// GET /api/mesures/last - Derniere mesure
+app.get('/api/mesures/last', (req, res) => {
+    const row = db.prepare('SELECT id, timestamp, tvoc, eco2, status FROM mesures ORDER BY id DESC LIMIT 1').get();
+    if (!row) return res.status(404).json({ error: 'Aucune mesure' });
+    res.json(row);
+});
+
+// GET /api/alertes - Lire les alertes
+app.get('/api/alertes', (req, res) => {
+    const limit = parseInt(req.query.limit) || 20;
+    const alertes = db.prepare('SELECT id, timestamp, type, tvoc, eco2, message FROM alertes ORDER BY id DESC LIMIT ?').all(limit);
+    res.json(alertes);
+});
+
+// GET /api/mesures/stats - Stats capteur gaz
+app.get('/api/mesures/stats', (req, res) => {
+    const stats = db.prepare(`
+        SELECT 
+            COUNT(*) as total_mesures,
+            ROUND(AVG(tvoc), 1) as tvoc_moy,
+            ROUND(AVG(eco2), 1) as eco2_moy,
+            MAX(tvoc) as tvoc_max,
+            MAX(eco2) as eco2_max
+        FROM mesures
+    `).get();
+    const dangers = db.prepare("SELECT COUNT(*) as count FROM alertes WHERE type='DANGER'").get();
+    const alertesCount = db.prepare("SELECT COUNT(*) as count FROM alertes WHERE type='ALERTE'").get();
+    res.json({ ...stats, nb_dangers: dangers.count, nb_alertes: alertesCount.count });
+});
+
 // ─── API Commandes ─────────────────────────────────────────
 
 // GET /api/commandes - Historique

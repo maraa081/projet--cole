@@ -1,143 +1,213 @@
 // ─── Capteurs Dashboard ───────────────────────────────────
 
-async function loadAllSensors() {
+let chartInstance = null;
+
+async function loadSGP30Live() {
+    try {
+        const res = await fetch('/ecole/api/mesures/last');
+        const data = await res.json();
+
+        const statusColors = {
+            'OK': 'var(--success)',
+            'ALERTE': 'var(--warning)',
+            'DANGER': 'var(--danger)',
+            'INIT': 'var(--accent)'
+        };
+
+        document.getElementById('sgp30-live').innerHTML = `
+            <div class="stat-card">
+                <h4>TVOC (Composes organiques)</h4>
+                <div class="value accent">${data.tvoc || '--'}</div>
+                <div style="font-size:0.8rem;color:var(--text-secondary)">ppb</div>
+            </div>
+            <div class="stat-card">
+                <h4>eCO2 (CO2 equivalent)</h4>
+                <div class="value accent2">${data.eco2 || '--'}</div>
+                <div style="font-size:0.8rem;color:var(--text-secondary)">ppm</div>
+            </div>
+            <div class="stat-card">
+                <h4>Status</h4>
+                <div class="value" style="color:${statusColors[data.status] || 'var(--text-secondary)'}">${data.status || '--'}</div>
+            </div>
+            <div class="stat-card">
+                <h4>Derniere mesure</h4>
+                <div class="value" style="font-size:0.9rem;color:var(--text-secondary)">
+                    ${data.timestamp ? new Date(data.timestamp).toLocaleTimeString('fr-FR') : '--'}
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        document.getElementById('sgp30-live').innerHTML =
+            '<p style="color:var(--text-secondary);grid-column:1/-1;text-align:center">En attente du capteur...</p>';
+    }
+}
+
+async function loadSGP30Chart() {
+    try {
+        const res = await fetch('/ecole/api/mesures?limit=60');
+        const data = await res.json();
+
+        if (!data.length) return;
+
+        const labels = data.map(d => {
+            const t = new Date(d.timestamp);
+            return t.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        });
+        const tvoc = data.map(d => d.tvoc);
+        const eco2 = data.map(d => d.eco2);
+
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(document.getElementById('sgp30-chart'), {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'TVOC (ppb)',
+                        data: tvoc,
+                        borderColor: '#6c5ce7',
+                        backgroundColor: 'rgba(108,92,231,0.08)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        borderWidth: 2,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'eCO2 (ppm)',
+                        data: eco2,
+                        borderColor: '#00cec9',
+                        backgroundColor: 'rgba(0,206,201,0.08)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        borderWidth: 2,
+                        yAxisID: 'y1',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        labels: { color: '#6b7280', font: { size: 12 } }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#6b7280', maxTicksLimit: 12, font: { size: 11 } },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'TVOC (ppb)', color: '#6c5ce7' },
+                        ticks: { color: '#6b7280' },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'eCO2 (ppm)', color: '#00cec9' },
+                        ticks: { color: '#6b7280' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.error('Chart error:', e);
+    }
+}
+
+async function loadAlertes() {
+    try {
+        const res = await fetch('/ecole/api/alertes?limit=10');
+        const alertes = await res.json();
+        const container = document.getElementById('alertes-list');
+
+        if (!alertes.length) {
+            container.innerHTML = '<p style="color:var(--text-secondary)">Aucune alerte</p>';
+            return;
+        }
+
+        container.innerHTML = alertes.map(a => {
+            const typeColor = a.type === 'DANGER' ? 'var(--danger)' : 'var(--warning)';
+            return `
+                <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:0.75rem 0;border-bottom:1px solid var(--border)">
+                    <div>
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;
+                            background:${typeColor};margin-right:0.5rem"></span>
+                        <strong style="color:${typeColor}">${a.type}</strong>
+                        <span style="color:var(--text-secondary);margin-left:0.5rem">${a.message}</span>
+                    </div>
+                    <div style="font-size:0.8rem;color:var(--text-secondary)">
+                        ${new Date(a.timestamp).toLocaleString('fr-FR')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (e) {
+        document.getElementById('alertes-list').innerHTML =
+            '<p style="color:var(--text-secondary)">Erreur chargement alertes</p>';
+    }
+}
+
+async function loadOtherSensors() {
     try {
         const res = await fetch('/ecole/api/capteurs/tous');
         const capteurs = await res.json();
         const grid = document.getElementById('sensors-grid');
 
-        const icons = {
-            'Gaz': '', 'Température': '', 'Distance': '',
-            'Lumière': '', 'Mouvement': '', 'Son': ''
-        };
-        const badges = {
-            'Gaz': 'gaz', 'Température': 'temp', 'Distance': 'dist',
-            'Lumière': 'lumiere', 'Mouvement': 'mouvement', 'Son': 'son'
-        };
-
         grid.innerHTML = capteurs.map(c => {
-            const label = c.capteur.split('(')[0].trim() || c.capteur;
-            const badgeClass = badges[Object.keys(badges).find(k => c.capteur.includes(k))] || 'gaz';
-            const icon = icons[Object.keys(icons).find(k => c.capteur.includes(k))] || '';
+            const badges = {
+                'Groupe B': 'temp', 'Groupe C': 'dist',
+                'Groupe D': 'lumiere', 'Groupe E': 'mouvement', 'Groupe F': 'son'
+            };
+            const labels = {
+                'Groupe B': 'Temperature', 'Groupe C': 'Distance',
+                'Groupe D': 'Lumiere', 'Groupe E': 'Mouvement', 'Groupe F': 'Son'
+            };
+            const label = labels[c.groupe] || c.capteur;
+            const badge = badges[c.groupe] || 'gaz';
+
             return `
-                <div class="sensor-card">
+                <div class="sensor-card" style="background:var(--bg-card);padding:1.25rem;
+                    border:1px solid var(--border);border-radius:var(--radius)">
                     <div class="sensor-header">
-                        <span class="sensor-name">${icon} ${label}</span>
-                        <span class="sensor-badge ${badgeClass}">${c.groupe}</span>
+                        <span class="sensor-name">${c.groupe} — ${label}</span>
+                        <span class="sensor-badge ${badge}">${c.groupe}</span>
                     </div>
-                    <div class="sensor-value">
+                    <div class="sensor-value" style="font-size:1.8rem">
                         ${c.valeur} <span class="unit">${c.unite}</span>
                     </div>
-                    <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.3rem">
+                    <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.2rem">
                         ${new Date(c.timestamp).toLocaleString('fr-FR')}
                     </div>
                 </div>
             `;
         }).join('');
     } catch (e) {
-        document.getElementById('sensors-grid').innerHTML = '<p style="color:var(--text-secondary)">En attente des données...</p>';
-    }
-}
-
-async function loadGazChart() {
-    try {
-        const res = await fetch('/ecole/api/capteurs/gaz');
-        const data = await res.json();
-
-        if (!data.length) {
-            document.getElementById('gaz-chart').parentElement.innerHTML +=
-                '<p style="color:var(--text-secondary);text-align:center">Aucune donnée gaz disponible</p>';
-            return;
-        }
-
-        const labels = data.reverse().map(d =>
-            new Date(d.timestamp).toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-        );
-        const values = data.map(d => d.valeur);
-
-        new Chart(document.getElementById('gaz-chart'), {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Gaz (ppm)',
-                    data: values,
-                    borderColor: '#6c5ce7',
-                    backgroundColor: 'rgba(108, 92, 231, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#6c5ce7',
-                    borderWidth: 2,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { labels: { color: '#8888bb' } }
-                },
-                scales: {
-                    x: {
-                        ticks: { color: '#8888bb', maxTicksLimit: 10 },
-                        grid: { color: 'rgba(108,92,231,0.1)' }
-                    },
-                    y: {
-                        beginAtZero: false,
-                        ticks: { color: '#8888bb' },
-                        grid: { color: 'rgba(108,92,231,0.1)' }
-                    }
-                }
-            }
-        });
-    } catch (e) {
-        console.error('Gaz chart error:', e);
-    }
-}
-
-async function loadAllSensorTable() {
-    try {
-        const res = await fetch('/ecole/api/capteurs');
-        const data = await res.json();
-        const container = document.getElementById('all-sensors-table');
-
-        // Group by capteur
-        const grouped = {};
-        data.forEach(d => {
-            if (!grouped[d.capteur]) grouped[d.capteur] = [];
-            grouped[d.capteur].push(d);
-        });
-
-        container.innerHTML = Object.entries(grouped).map(([capteur, entries]) => `
-            <div style="margin-bottom:1rem">
-                <h4 style="margin-bottom:0.5rem;color:var(--text-secondary);font-size:0.85rem">
-                     ${capteur}
-                </h4>
-                <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-                    ${entries.slice(0, 10).map(e => `
-                        <span style="background:var(--bg-card);padding:0.3rem 0.7rem;border-radius:4px;font-size:0.85rem">
-                            ${e.valeur} ${e.unite}
-                            <span style="color:var(--text-secondary);font-size:0.75rem;margin-left:0.3rem">
-                                ${new Date(e.timestamp).toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                        </span>
-                    `).join('')}
-                </div>
-            </div>
-        `).join('');
-    } catch (e) {
-        document.getElementById('all-sensors-table').innerHTML =
-            '<p style="color:var(--text-secondary)">En attente...</p>';
+        document.getElementById('sensors-grid').innerHTML = '<p style="color:var(--text-secondary)">En attente...</p>';
     }
 }
 
 // ─── Init ──────────────────────────────────────────────────
-loadAllSensors();
-loadGazChart();
-loadAllSensorTable();
+loadSGP30Live();
+loadSGP30Chart();
+loadAlertes();
+loadOtherSensors();
 
-// Auto-refresh every 30s
+// Auto-refresh toutes les 10s
 setInterval(() => {
-    loadAllSensors();
-    loadAllSensorTable();
-}, 30000);
+    loadSGP30Live();
+    loadSGP30Chart();
+    loadAlertes();
+    loadOtherSensors();
+}, 10000);

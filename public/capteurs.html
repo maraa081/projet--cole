@@ -6,7 +6,7 @@
     <title>Capteurs — SmartVend</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900<link rel="stylesheet" href="/ecole/css/style.css">display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/ecole/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -22,24 +22,30 @@
     </nav>
 
     <div class="page-header">
-        <h1>Données Capteurs</h1>
-        <p>Visualisation en temps réel — Tous les groupes confondus</p>
+        <h1>Capteurs</h1>
+        <p>Donnees en temps reel — Capteur SGP30 (Gaz / CO2) + groupes</p>
     </div>
 
-    <div style="max-width:1200px;margin:0 auto;padding:2rem">
-        <!-- Highlights -->
-        <div class="sensors-grid" id="sensors-grid"></div>
+    <div style="max-width:1100px;margin:0 auto;padding:2rem">
+        <!-- SGP30 Live -->
+        <div class="stats-grid" id="sgp30-live"></div>
 
-        <!-- Graphique Gaz -->
+        <!-- Graphique TVOC / eCO2 -->
         <div class="chart-container">
-            <h3>Notre capteur — Gaz (MQ-135) — Évolution</h3>
-            <canvas id="gaz-chart"></canvas>
+            <h3>Capteur SGP30 — TVOC et eCO2 (derniere heure)</h3>
+            <canvas id="sgp30-chart"></canvas>
         </div>
 
-        <!-- Tous les capteurs -->
+        <!-- Alertes -->
+        <div class="chart-container" id="alertes-section">
+            <h3>Alertes gaz</h3>
+            <div id="alertes-list"></div>
+        </div>
+
+        <!-- Autres groupes -->
         <div class="chart-container">
-            <h3>Tous les capteurs — Dernières valeurs</h3>
-            <div id="all-sensors-table"></div>
+            <h3>Autres capteurs — groupes</h3>
+            <div id="sensors-grid" class="sensors-grid" style="margin-bottom:0"></div>
         </div>
     </div>
 
