@@ -193,6 +193,43 @@ app.get('/api/mesures/stats', (req, res) => {
     res.json({ ...stats, nb_dangers: dangers.count, nb_alertes: alertesCount.count });
 });
 
+// ─── API BDD complète (toutes les donnees) ───────────────
+
+// GET /api/bdd/locale - Toute la base locale
+app.get('/api/bdd/locale', (req, res) => {
+    try {
+        const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all();
+        const data = {};
+        for (const t of tables) {
+            if (t.name === 'sqlite_sequence') continue;
+            data[t.name] = db.prepare(`SELECT * FROM "${t.name}" ORDER BY id DESC LIMIT 100`).all();
+        }
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// GET /api/bdd/partagee - Toute la base partagee MySQL
+app.get('/api/bdd/partagee', async (req, res) => {
+    if (!mysqlConn) return res.json({ error: 'MySQL non connecte' });
+    try {
+        const tables = ['temperature_humidite', 'luminosite', 'utilisateurs'];
+        const data = {};
+        for (const table of tables) {
+            try {
+                const [rows] = await mysqlConn.query(`SELECT * FROM \`${table}\` ORDER BY timestamp DESC LIMIT 100`);
+                data[table] = rows;
+            } catch(e) {
+                data[table] = [];
+            }
+        }
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // ─── API Base partagee (MySQL) ───────────────────────────
 
 // GET /api/partage/temperatures

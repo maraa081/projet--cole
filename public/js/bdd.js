@@ -1,104 +1,123 @@
-// ─── BDD Viewer — Temps reel ──────────────────────────────
+// ─── BDD Viewer — Toutes les donnees ─────────────────────
 
-async function loadMesures() {
-    try {
-        const res = await fetch('/ecole/api/mesures?limit=30');
-        const data = await res.json();
-        document.getElementById('mesures-table').innerHTML = data.slice().reverse().map(m => {
-            const statusColor = m.status === 'OK' ? 'var(--success)' : 
-                                m.status === 'ALERTE' ? 'var(--warning)' : 'var(--danger)';
-            return `<tr>
-                <td>${m.id}</td>
-                <td>${new Date(m.timestamp).toLocaleTimeString('fr-FR')}</td>
-                <td><strong>${m.tvoc}</strong></td>
-                <td><strong>${m.eco2}</strong></td>
-                <td><span style="color:${statusColor};font-weight:600">${m.status}</span></td>
-            </tr>`;
-        }).join('');
-        document.getElementById('mesures-count').textContent = data.length;
-    } catch(e) {}
+function renderTable(name, rows) {
+    if (!rows || rows.length === 0) {
+        return `<div class="chart-container">
+            <h3>${escapeHtml(name)}</h3>
+            <p style="color:var(--text-secondary)">Table vide</p>
+        </div>`;
+    }
+    
+    const cols = Object.keys(rows[0]);
+    
+    const header = cols.map(c => `<th>${escapeHtml(c)}</th>`).join('');
+    const body = rows.map(row => {
+        return '<tr>' + cols.map(c => {
+            let val = row[c];
+            if (val === null || val === undefined) return '<td style="color:var(--text-secondary)">NULL</td>';
+            if (c.toLowerCase().includes('status')) {
+                const color = val === 'OK' ? 'var(--success)' : val === 'ALERTE' ? 'var(--warning)' : val === 'DANGER' ? 'var(--danger)' : 'var(--text)';
+                return `<td><span style="color:${color};font-weight:600">${escapeHtml(String(val))}</span></td>`;
+            }
+            return `<td>${escapeHtml(String(val))}</td>`;
+        }).join('') + '</tr>';
+    }).join('');
+    
+    return `<div class="chart-container">
+        <h3>${escapeHtml(name)} <span style="font-weight:400;font-size:0.85rem;color:var(--text-secondary)">(${rows.length} lignes)</span></h3>
+        <div style="overflow-x:auto;max-height:500px;overflow-y:auto">
+            <table>
+                <thead><tr>${header}</tr></thead>
+                <tbody>${body}</tbody>
+            </table>
+        </div>
+    </div>`;
 }
 
-async function loadAlertes() {
-    try {
-        const res = await fetch('/ecole/api/alertes?limit=20');
-        const data = await res.json();
-        document.getElementById('alertes-table').innerHTML = data.length ? data.map(a => {
-            const typeColor = a.type === 'DANGER' ? 'var(--danger)' : 'var(--warning)';
-            return `<tr>
-                <td>${a.id}</td>
-                <td>${new Date(a.timestamp).toLocaleString('fr-FR')}</td>
-                <td><span style="color:${typeColor};font-weight:600">${a.type}</span></td>
-                <td>${a.tvoc}</td>
-                <td>${a.eco2}</td>
-                <td>${a.message}</td>
-            </tr>`;
-        }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary)">Aucune alerte</td></tr>';
-    } catch(e) {}
+function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-async function loadPartage() {
+async function loadLocale() {
     try {
-        const res = await fetch('/ecole/api/partage/tout');
+        const res = await fetch('/ecole/api/bdd/locale');
         const data = await res.json();
+        const container = document.getElementById('locale-content');
         
-        // Temperature
-        if (data.temperature) {
-            document.getElementById('temp-table').innerHTML = `<tr>
-                <td>${data.temperature.id}</td>
-                <td>${data.temperature.temperature} °C</td>
-                <td>${data.temperature.humidite} %</td>
-                <td>${new Date(data.temperature.timestamp).toLocaleString('fr-FR')}</td>
-            </tr>`;
+        // Stats
+        let totalRows = 0;
+        let html = '<div class="stats-grid" style="margin-bottom:1rem">';
+        for (const [name, rows] of Object.entries(data)) {
+            if (Array.isArray(rows)) {
+                html += `<div class="stat-card"><h4>${escapeHtml(name)}</h4><div class="value accent">${rows.length}</div></div>`;
+                totalRows += rows.length;
+            }
+        }
+        html += `<div class="stat-card"><h4>Total</h4><div class="value success">${totalRows}</div></div>`;
+        html += '</div>';
+        
+        // Tables
+        for (const [name, rows] of Object.entries(data)) {
+            if (Array.isArray(rows)) {
+                html += renderTable(name, rows);
+            }
         }
         
-        // Luminosite
-        if (data.luminosite) {
-            document.getElementById('lumiere-table').innerHTML = `<tr>
-                <td>${data.luminosite.id}</td>
-                <td>${data.luminosite.luminosite} lux</td>
-                <td>${new Date(data.luminosite.timestamp).toLocaleString('fr-FR')}</td>
-            </tr>`;
-        } else {
-            document.getElementById('lumiere-table').innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-secondary)">Pas encore de donnees</td></tr>';
-        }
-    } catch(e) {}
+        container.innerHTML = html;
+    } catch(e) {
+        document.getElementById('locale-content').innerHTML = '<p style="color:var(--danger)">Erreur chargement</p>';
+    }
 }
 
-async function loadStats() {
+async function loadPartagee() {
     try {
-        const [s1, s2] = await Promise.all([
-            fetch('/ecole/api/mesures/stats').then(r => r.json()),
-            fetch('/ecole/api/mesures/last').then(r => r.json()).catch(() => ({}))
-        ]);
-        document.getElementById('bdd-stats').innerHTML = `
-            <div class="stat-card">
-                <h4>Mesures SGP30</h4>
-                <div class="value accent">${s1.total_mesures || 0}</div>
-            </div>
-            <div class="stat-card">
-                <h4>TVOC moyen</h4>
-                <div class="value accent2">${s1.tvoc_moy || '--'} <span class="unit">ppb</span></div>
-            </div>
-            <div class="stat-card">
-                <h4>eCO2 moyen</h4>
-                <div class="value success">${s1.eco2_moy || '--'} <span class="unit">ppm</span></div>
-            </div>
-            <div class="stat-card">
-                <h4>Dernier status</h4>
-                <div class="value" style="color:${s2.status === 'OK' ? 'var(--success)' : 'var(--danger)'}">${s2.status || '--'}</div>
-            </div>
-        `;
-    } catch(e) {}
+        const res = await fetch('/ecole/api/bdd/partagee');
+        const data = await res.json();
+        const container = document.getElementById('partagee-content');
+        
+        if (data.error) {
+            container.innerHTML = `<p style="color:var(--danger)">${data.error}</p>`;
+            return;
+        }
+        
+        let totalRows = 0;
+        let html = '<div class="stats-grid" style="margin-bottom:1rem">';
+        for (const [name, rows] of Object.entries(data)) {
+            if (Array.isArray(rows)) {
+                html += `<div class="stat-card"><h4>${escapeHtml(name)}</h4><div class="value accent2">${rows.length}</div></div>`;
+                totalRows += rows.length;
+            }
+        }
+        html += `<div class="stat-card"><h4>Total</h4><div class="value success">${totalRows}</div></div>`;
+        html += '</div>';
+        
+        for (const [name, rows] of Object.entries(data)) {
+            if (Array.isArray(rows)) {
+                html += renderTable(name, rows);
+            }
+        }
+        
+        container.innerHTML = html;
+    } catch(e) {
+        document.getElementById('partagee-content').innerHTML = '<p style="color:var(--danger)">Erreur chargement</p>';
+    }
 }
 
-// Init + refresh rapide
-loadStats();
-loadMesures();
-loadAlertes();
-loadPartage();
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.className = b.className.replace(' btn-primary', ' btn-secondary').replace(' active', '');
+        if (b.textContent.toLowerCase().includes(tab === 'locale' ? 'locale' : 'partagee')) {
+            b.className = 'btn btn-primary tab-btn active';
+        }
+    });
+    document.getElementById('tab-locale').style.display = tab === 'locale' ? 'block' : 'none';
+    document.getElementById('tab-partagee').style.display = tab === 'partagee' ? 'block' : 'none';
+}
 
-setInterval(loadStats, 1000);
-setInterval(loadMesures, 1000);
-setInterval(loadAlertes, 5000);
-setInterval(loadPartage, 5000);
+// Init
+loadLocale();
+loadPartagee();
+
+// Refresh toutes les 3 secondes
+setInterval(loadLocale, 3000);
+setInterval(loadPartagee, 5000);

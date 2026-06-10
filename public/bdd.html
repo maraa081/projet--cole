@@ -18,73 +18,31 @@
             <li><a href="/ecole/">Accueil</a></li>
             <li><a href="/ecole/distributeur">Distributeur 3D</a></li>
             <li><a href="/ecole/capteurs">Capteurs</a></li>
-            <li><a href="/ecole/bdd">BDD</a></li>
-            <li><a href="/ecole/bdd">BDD</a></li>
+            <li><a href="/ecole/bdd" class="active">BDD</a></li>
             <li><a href="/ecole/admin">Admin</a></li>
         </ul>
     </nav>
 
     <div class="page-header">
         <h1>Base de donnees</h1>
-        <p>Donnees en temps reel — locale (SGP30) + partagee (MySQL)</p>
+        <p>Toutes les donnees — locale SGP30 + partagee MySQL</p>
     </div>
 
-    <div style="max-width:1100px;margin:0 auto;padding:2rem">
-        <!-- Stats en direct -->
-        <div class="stats-grid" id="bdd-stats"></div>
-
-        <!-- Tables locales -->
-        <div class="chart-container">
-            <h3>Mesures SGP30 (locale)</h3>
-            <div style="overflow-x:auto">
-                <table>
-                    <thead><tr>
-                        <th>ID</th><th>Timestamp</th><th>TVOC</th><th>eCO2</th><th>Status</th>
-                    </tr></thead>
-                    <tbody id="mesures-table"></tbody>
-                </table>
-            </div>
-            <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-secondary)">
-                Total: <span id="mesures-count">0</span> mesures
-            </div>
+    <div style="max-width:1200px;margin:0 auto;padding:2rem">
+        <!-- Tabs -->
+        <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:0.5rem">
+            <button class="btn btn-primary tab-btn active" onclick="switchTab('locale')">Locale (SGP30)</button>
+            <button class="btn btn-secondary tab-btn" onclick="switchTab('partagee')">Partagee (MySQL)</button>
         </div>
 
-        <!-- Alertes -->
-        <div class="chart-container">
-            <h3>Alertes</h3>
-            <div style="overflow-x:auto">
-                <table>
-                    <thead><tr>
-                        <th>ID</th><th>Timestamp</th><th>Type</th><th>TVOC</th><th>eCO2</th><th>Message</th>
-                    </tr></thead>
-                    <tbody id="alertes-table"></tbody>
-                </table>
-            </div>
+        <!-- Tableau locale -->
+        <div id="tab-locale">
+            <div id="locale-content"></div>
         </div>
 
-        <!-- Base partagee MySQL -->
-        <div class="chart-container">
-            <h3>Base partagee (MySQL — autres groupes)</h3>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-                <div>
-                    <h4 style="margin-bottom:0.5rem;color:var(--accent)">Temperature / Humidite (Groupe B)</h4>
-                    <div style="overflow-x:auto">
-                        <table>
-                            <thead><tr><th>ID</th><th>Temperature</th><th>Humidite</th><th>Timestamp</th></tr></thead>
-                            <tbody id="temp-table"></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div>
-                    <h4 style="margin-bottom:0.5rem;color:var(--accent2)">Luminosite (Groupe D)</h4>
-                    <div style="overflow-x:auto">
-                        <table>
-                            <thead><tr><th>ID</th><th>Luminosite</th><th>Timestamp</th></tr></thead>
-                            <tbody id="lumiere-table"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <!-- Tableau partagee -->
+        <div id="tab-partagee" style="display:none">
+            <div id="partagee-content"></div>
         </div>
     </div>
 
