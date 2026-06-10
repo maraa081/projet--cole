@@ -91,15 +91,13 @@ body {
   align-items: center;
   text-align: center;
   padding: 6rem 2rem 4rem;
-  position: relative;
-  overflow: hidden;
   background: linear-gradient(135deg, #f8f9fc 0%, #eef0f6 100%);
 }
 
 .hero::before {
   content: '';
-  position: absolute;
-  z-index: -1;
+  position: fixed;
+  pointer-events: none;
   width: 500px;
   height: 500px;
   background: radial-gradient(circle, rgba(108,92,231,0.06), transparent 70%);
@@ -139,7 +137,13 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   position: relative;
-  z-index: 1;
+  z-index: 10;
+}
+
+.hero-btns .btn {
+  cursor: pointer;
+  position: relative;
+  z-index: 11;
 }
 
 /* ─── Buttons ────────────────────────────────────────────────── */
