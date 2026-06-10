@@ -303,7 +303,7 @@ async function loadProducts() {
         grid.innerHTML = produits.map(p => {
             const stockClass = p.quantite === 0 ? 'empty' : p.quantite < 5 ? 'low' : '';
             const stockText = p.quantite === 0 ? 'Rupture' : p.quantite < 5 ? `Plus que ${p.quantite}` : `${p.quantite} en stock`;
-            const icone = p.type === 'canette' ? '🥫' : p.type === 'snack' ? '🍫' : '🧃';
+            
 
             return `
                 <div class="product-item" data-id="${p.id}">

@@ -48,8 +48,8 @@ async function loadProduits() {
                       '<span style="color:var(--success)">OK</span>'}
                 </td>
                 <td>
-                    <button class="action-btn edit" onclick="editProduit(${p.id})">✏️</button>
-                    <button class="action-btn delete" onclick="deleteProduit(${p.id})">🗑️</button>
+                    <button class="action-btn edit" onclick="editProduit(${p.id})">Modifier</button>
+                    <button class="action-btn delete" onclick="deleteProduit(${p.id})">Supprimer</button>
                 </td>
             </tr>
         `).join('');

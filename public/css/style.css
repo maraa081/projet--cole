@@ -99,6 +99,7 @@ body {
 .hero::before {
   content: '';
   position: absolute;
+  z-index: -1;
   width: 500px;
   height: 500px;
   background: radial-gradient(circle, rgba(108,92,231,0.06), transparent 70%);

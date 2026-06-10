@@ -7,8 +7,8 @@ async function loadAllSensors() {
         const grid = document.getElementById('sensors-grid');
 
         const icons = {
-            'Gaz': '💨', 'Température': '🌡️', 'Distance': '📏',
-            'Lumière': '☀️', 'Mouvement': '🚶', 'Son': '🎤'
+            'Gaz': '', 'Température': '', 'Distance': '',
+            'Lumière': '', 'Mouvement': '', 'Son': ''
         };
         const badges = {
             'Gaz': 'gaz', 'Température': 'temp', 'Distance': 'dist',
@@ -18,7 +18,7 @@ async function loadAllSensors() {
         grid.innerHTML = capteurs.map(c => {
             const label = c.capteur.split('(')[0].trim() || c.capteur;
             const badgeClass = badges[Object.keys(badges).find(k => c.capteur.includes(k))] || 'gaz';
-            const icon = icons[Object.keys(icons).find(k => c.capteur.includes(k))] || '📡';
+            const icon = icons[Object.keys(icons).find(k => c.capteur.includes(k))] || '';
             return `
                 <div class="sensor-card">
                     <div class="sensor-header">
@@ -111,7 +111,7 @@ async function loadAllSensorTable() {
         container.innerHTML = Object.entries(grouped).map(([capteur, entries]) => `
             <div style="margin-bottom:1rem">
                 <h4 style="margin-bottom:0.5rem;color:var(--text-secondary);font-size:0.85rem">
-                    📡 ${capteur}
+                     ${capteur}
                 </h4>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
                     ${entries.slice(0, 10).map(e => `
