@@ -193,6 +193,29 @@ app.get('/api/mesures/stats', (req, res) => {
     res.json({ ...stats, nb_dangers: dangers.count, nb_alertes: alertesCount.count });
 });
 
+// ─── API SQL Query (MySQL partagee) ──────────────────────
+
+app.post('/api/sql', express.json(), async (req, res) => {
+    if (!mysqlConn) return res.status(503).json({ error: 'MySQL non connecte' });
+    const { query } = req.body;
+    if (!query || !query.trim()) return res.status(400).json({ error: 'Requete vide' });
+    
+    // Securite: bloquer les requetes dangereuses
+    const q = query.trim().toUpperCase();
+    if (q.startsWith('DROP') || q.startsWith('ALTER') || q.startsWith('CREATE') || 
+        q.startsWith('TRUNCATE') || q.startsWith('DELETE') || q.startsWith('UPDATE') ||
+        q.startsWith('INSERT') || q.startsWith('GRANT') || q.startsWith('REVOKE')) {
+        return res.status(403).json({ error: 'Requetes en ecriture interdites (compte lecture seule)' });
+    }
+    
+    try {
+        const [rows] = await mysqlConn.query(query.trim());
+        res.json({ rows, count: rows.length });
+    } catch (e) {
+        res.status(400).json({ error: e.message });
+    }
+});
+
 // ─── API BDD complète (toutes les donnees) ───────────────
 
 // GET /api/bdd/locale - Toute la base locale
@@ -328,6 +351,9 @@ app.get('/capteurs', (req, res) => {
 });
 app.get('/bdd', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'bdd.html'));
+});
+app.get('/mysql-admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'mysql-admin.html'));
 });
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
