@@ -1,0 +1,16 @@
+../Src/main.c:96:13:delay_ms	2
+../Src/main.c:105:13:uart_init	1
+../Src/main.c:121:13:uart_putc	2
+../Src/main.c:126:13:uart_puts	2
+../Src/main.c:133:13:i2c_init	1
+../Src/main.c:154:12:i2c_write	7
+../Src/main.c:179:12:i2c_read	6
+../Src/main.c:205:13:led_init	1
+../Src/main.c:210:13:led_on	1
+../Src/main.c:211:13:led_off	1
+../Src/main.c:212:13:led_toggle	1
+../Src/main.c:219:16:sgp30_crc	4
+../Src/main.c:229:12:sgp30_init	2
+../Src/main.c:236:12:sgp30_read	5
+../Src/main.c:255:20:get_status	7
+../Src/main.c:265:5:main	4
