@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/ecole/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/ecole/" class="logo">Smart<span>Vend</span></a>
+        <ul class="nav-links">
+            <li><a href="/ecole/">Accueil</a></li>
+            <li><a href="/ecole/distributeur">Distributeur 3D</a></li>
+            <li><a href="/ecole/capteurs">Capteurs</a></li>
+            <li><a href="/ecole/bdd">BDD</a></li>
+            <li><a href="/ecole/bdd">BDD</a></li>
+            <li><a href="/ecole/admin">Admin</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>Base de donnees</h1>
+        <p>Donnees en temps reel — locale (SGP30) + partagee (MySQL)</p>
+    </div>
+
+    <div style="max-width:1100px;margin:0 auto;padding:2rem">
+        <!-- Stats en direct -->
+        <div class="stats-grid" id="bdd-stats"></div>
+
+        <!-- Tables locales -->
+        <div class="chart-container">
+            <h3>Mesures SGP30 (locale)</h3>
+            <div style="overflow-x:auto">
+                <table>
+                    <thead><tr>
+                        <th>ID</th><th>Timestamp</th><th>TVOC</th><th>eCO2</th><th>Status</th>
+                    </tr></thead>
+                    <tbody id="mesures-table"></tbody>
+                </table>
+            </div>
+            <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-secondary)">
+                Total: <span id="mesures-count">0</span> mesures
+            </div>
+        </div>
+
+        <!-- Alertes -->
+        <div class="chart-container">
+            <h3>Alertes</h3>
+            <div style="overflow-x:auto">
+                <table>
+                    <thead><tr>
+                        <th>ID</th><th>Timestamp</th><th>Type</th><th>TVOC</th><th>eCO2</th><th>Message</th>
+                    </tr></thead>
+                    <tbody id="alertes-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Base partagee MySQL -->
+        <div class="chart-container">
+            <h3>Base partagee (MySQL — autres groupes)</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                <div>
+                    <h4 style="margin-bottom:0.5rem;color:var(--accent)">Temperature / Humidite (Groupe B)</h4>
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead><tr><th>ID</th><th>Temperature</th><th>Humidite</th><th>Timestamp</th></tr></thead>
+                            <tbody id="temp-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <h4 style="margin-bottom:0.5rem;color:var(--accent2)">Luminosite (Groupe D)</h4>
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead><tr><th>ID</th><th>Luminosite</th><th>Timestamp</th></tr></thead>
+                            <tbody id="lumiere-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/ecole/js/bdd.js"></script>
+</body>
+</html>

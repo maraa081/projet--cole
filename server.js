@@ -289,6 +289,9 @@ app.get('/admin', (req, res) => {
 app.get('/capteurs', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'capteurs.html'));
 });
+app.get('/bdd', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'bdd.html'));
+});
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
