@@ -31,7 +31,11 @@
     <div style="max-width:1100px;margin:0 auto;padding:2rem">
         <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.5rem">Page: Capteurs — Donnees en direct du capteur SGP30</div>
         <!-- SGP30 Live -->
-        <div class="stats-grid" id="sgp30-live"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+        <div style="font-size:0.85rem;color:var(--text-secondary)">Capteur SGP30 — Groupe A (Gaz/CO2)</div>
+        <div id="live-status" style="font-size:0.8rem;color:var(--text-secondary)">Attente donnees...</div>
+    </div>
+    <div class="stats-grid" id="sgp30-live"></div>
 
         <!-- Graphique TVOC / eCO2 -->
         <div class="chart-container">

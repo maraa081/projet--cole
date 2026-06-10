@@ -2,6 +2,8 @@
 
 let chartInstance = null;
 
+let lastLiveTime = 0;
+
 async function loadSGP30Live() {
     try {
         const res = await fetch('/ecole/api/mesures/last');
@@ -14,15 +16,30 @@ async function loadSGP30Live() {
             'INIT': 'var(--accent)'
         };
 
+        const now = Date.now();
+        const sinceLast = data.timestamp ? Math.round((now - new Date(data.timestamp + 'Z').getTime()) / 1000) : 0;
+        const timeAgo = sinceLast < 1 ? 'Maintenant' : sinceLast < 60 ? `Il y a ${sinceLast}s` : `Il y a ${Math.round(sinceLast/60)}min`;
+        
+        // Pulse status if data is fresh
+        if (sinceLast < 5 && data.tvoc !== undefined) {
+            document.getElementById('live-status').innerHTML = 
+                '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:6px;animation:pulse 1s infinite"></span>'
+                + ` Donnees temps reel - ${timeAgo}`;
+        } else {
+            document.getElementById('live-status').innerHTML = 
+                '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-secondary);margin-right:6px"></span>'
+                + ` Derniere mise a jour: ${timeAgo}`;
+        }
+
         document.getElementById('sgp30-live').innerHTML = `
             <div class="stat-card">
                 <h4>TVOC (Composes organiques)</h4>
-                <div class="value accent">${data.tvoc || '--'}</div>
+                <div class="value accent">${data.tvoc ?? '--'}</div>
                 <div style="font-size:0.8rem;color:var(--text-secondary)">ppb</div>
             </div>
             <div class="stat-card">
                 <h4>eCO2 (CO2 equivalent)</h4>
-                <div class="value accent2">${data.eco2 || '--'}</div>
+                <div class="value accent2">${data.eco2 ?? '--'}</div>
                 <div style="font-size:0.8rem;color:var(--text-secondary)">ppm</div>
             </div>
             <div class="stat-card">
@@ -30,15 +47,17 @@ async function loadSGP30Live() {
                 <div class="value" style="color:${statusColors[data.status] || 'var(--text-secondary)'}">${data.status || '--'}</div>
             </div>
             <div class="stat-card">
-                <h4>Derniere mesure</h4>
-                <div class="value" style="font-size:0.9rem;color:var(--text-secondary)">
-                    ${data.timestamp ? new Date(data.timestamp).toLocaleTimeString('fr-FR') : '--'}
-                </div>
+                <h4>Echantillon #</h4>
+                <div class="value" style="font-size:1.2rem;color:var(--text-secondary)">${data.id ?? '--'}</div>
             </div>
         `;
+        
+        lastLiveTime = now;
     } catch (e) {
-        document.getElementById('sgp30-live').innerHTML =
-            '<p style="color:var(--text-secondary);grid-column:1/-1;text-align:center">En attente du capteur...</p>';
+        if (Date.now() - lastLiveTime > 5000) {
+            document.getElementById('sgp30-live').innerHTML =
+                '<p style="color:var(--text-secondary);grid-column:1/-1;text-align:center">En attente du capteur...</p>';
+        }
     }
 }
 
@@ -204,10 +223,12 @@ loadSGP30Chart();
 loadAlertes();
 loadOtherSensors();
 
-// Auto-refresh toutes les 10s
+// Live values en temps reel (toutes les 100ms)
+setInterval(loadSGP30Live, 100);
+
+// Graphique + alertes + autres capteurs (toutes les 5s)
 setInterval(() => {
-    loadSGP30Live();
     loadSGP30Chart();
     loadAlertes();
     loadOtherSensors();
-}, 10000);
+}, 5000);

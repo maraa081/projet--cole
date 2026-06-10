@@ -638,6 +638,11 @@ tr:hover td { background: rgba(108,92,231,0.03); }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
 /* ─── Footer ─────────────────────────────────────────────────── */
 footer {
   text-align: center;
