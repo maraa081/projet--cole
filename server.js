@@ -6,7 +6,7 @@ const mysql = require('mysql2/promise');
 
 const app = express();
 
-// Connexion MySQL partagee (lecture seule)
+// Connexion MySQL partagee (lecture + ecriture)
 let mysqlConn = null;
 async function initMySQL() {
     try {
@@ -15,10 +15,38 @@ async function initMySQL() {
             port: 3306,
             user: 'g3d',
             password: 'nNzAsD5%U47qg@KR',
-            connectTimeout: 10000
+            connectTimeout: 10000,
+            waitForConnections: true,
+            connectionLimit: 1
         });
         await mysqlConn.query('USE app');
         console.log('[MySQL] Connecte a la base partagee');
+        
+        // Sync des donnees locales vers emissions (multi-row INSERT)
+        setImmediate(async () => {
+            try {
+                const mesures = db.prepare('SELECT * FROM mesures ORDER BY id').all();
+                if (mesures.length === 0) return;
+                console.log('[MySQL] Sync de ' + mesures.length + ' mesures en un lot...');
+                
+                // Multi-row INSERT (beaucoup plus rapide)
+                const chunks = [];
+                for (let i = 0; i < mesures.length; i += 100) {
+                    const batch = mesures.slice(i, i + 100);
+                    const values = batch.map(m => '(' + m.eco2 + ',' + m.tvoc + ')').join(',');
+                    chunks.push('INSERT INTO emissions (co2_emission, tvoc) VALUES ' + values);
+                }
+                
+                for (const sql of chunks) {
+                    try { await mysqlConn.query(sql); } catch(e) {}
+                }
+                
+                const [total] = await mysqlConn.query('SELECT COUNT(*) as t FROM emissions');
+                console.log('[MySQL] Sync termine — Total emissions: ' + total[0].t);
+            } catch(e) {
+                console.log('[MySQL] Sync erreur:', e.message);
+            }
+        });
     } catch (e) {
         console.error('[MySQL] Erreur connexion:', e.message);
         mysqlConn = null;
@@ -143,6 +171,12 @@ app.post('/api/mesures', (req, res) => {
     const st = db.prepare('INSERT INTO mesures (timestamp, tvoc, eco2, status, sample) VALUES (?,?,?,?,?)');
     const result = st.run(ts, tvoc, eco2, status || 'OK', sample || 0);
 
+    // Sync vers MySQL (emissions)
+    if (mysqlConn) {
+        mysqlConn.query('INSERT INTO emissions (co2_emission, tvoc) VALUES (?, ?)', [eco2, tvoc])
+            .catch(() => {});
+    }
+
     // Alerte auto si besoin
     if (status === 'ALERTE' || status === 'DANGER') {
         const msgs = {
@@ -213,6 +247,27 @@ app.post('/api/sql', express.json(), async (req, res) => {
         res.json({ rows, count: rows.length });
     } catch (e) {
         res.status(400).json({ error: e.message });
+    }
+});
+
+// GET /api/sync - Sync manuelle vers MySQL
+app.get('/api/sync', async (req, res) => {
+    if (!mysqlConn) return res.json({ error: 'MySQL non connecte' });
+    try {
+        const mesures = db.prepare('SELECT * FROM mesures ORDER BY id').all();
+        const chunks = [];
+        for (let i = 0; i < mesures.length; i += 100) {
+            const batch = mesures.slice(i, i + 100);
+            const values = batch.map(m => '(' + m.eco2 + ',' + m.tvoc + ')').join(',');
+            chunks.push('INSERT INTO emissions (co2_emission, tvoc) VALUES ' + values);
+        }
+        for (const sql of chunks) {
+            try { await mysqlConn.query(sql); } catch(e) {}
+        }
+        const [total] = await mysqlConn.query('SELECT COUNT(*) as t FROM emissions');
+        res.json({ synced: mesures.length, total: total[0].t });
+    } catch(e) {
+        res.json({ error: e.message });
     }
 });
 
