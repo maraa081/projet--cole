@@ -39,7 +39,7 @@ app.post('/api/produits', (req, res) => {
     const { nom, type, prix, quantite, couleur } = req.body;
     const stmt = db.prepare('INSERT INTO produits (nom, type, prix, quantite, couleur, en_stock) VALUES (?, ?, ?, ?, ?, 1)');
     const result = stmt.run(nom, type, prix, quantite || 10, couleur || '#ff6b35');
-    res.json({ id: result.lastInsertRowid, message: 'Produit ajouté ✅' });
+    res.json({ id: result.lastInsertRowid, message: 'Produit ajoute' });
 });
 
 // PUT /api/produits/:id - Modifier
@@ -60,13 +60,13 @@ app.put('/api/produits/:id', (req, res) => {
         quantite ?? produit.quantite,
         req.params.id
     );
-    res.json({ message: 'Produit mis à jour ✅' });
+    res.json({ message: 'Produit mis a jour' });
 });
 
 // DELETE /api/produits/:id - Supprimer
 app.delete('/api/produits/:id', (req, res) => {
     db.prepare('DELETE FROM produits WHERE id = ?').run(req.params.id);
-    res.json({ message: 'Produit supprimé ✅' });
+    res.json({ message: 'Produit supprime' });
 });
 
 // ─── API Capteurs ──────────────────────────────────────────
@@ -197,7 +197,7 @@ app.post('/api/commandes', (req, res) => {
     const total = (produit.prix * quantite).toFixed(2);
     db.prepare('INSERT INTO historique_commandes (produit_id, quantite, total) VALUES (?, ?, ?)').run(produit_id, quantite, quantite);
     db.prepare('UPDATE produits SET quantite = quantite - ?, en_stock = CASE WHEN quantite - ? <= 0 THEN 0 ELSE 1 END WHERE id = ?').run(quantite, quantite, produit_id);
-    res.json({ message: 'Commande validée ✅', total });
+    res.json({ message: 'Commande validee', total });
 });
 
 // GET /api/stats - Stats dashboard
@@ -220,13 +220,23 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
-// ─── SPA Fallback ──────────────────────────────────────────
-app.get('*', (req, res) => {
+// ─── Pages HTML ──────────────────────────────────────────
+app.get('/distributeur', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'distributeur.html'));
+});
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+app.get('/capteurs', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'capteurs.html'));
+});
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🥫 Distributeur API — http://localhost:${PORT}`);
-    console.log(`📡 Capteurs sur /api/capteurs`);
-    console.log(`📦 Produits sur /api/produits`);
+    console.log(`SmartVend API — http://localhost:${PORT}`);
+    console.log(`Capteurs sur /api/capteurs`);
+    console.log(`Produits sur /api/produits`);
+    console.log(`Mesures SGP30 sur /api/mesures`);
 });
